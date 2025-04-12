@@ -1,0 +1,28 @@
+---
+- name: Déployer Jenkins Agent Docker sur les VMs
+  hosts: agents
+  become: true
+
+  vars:
+    jenkins_url: "http://192.168.56.1:9090"
+    secret: "<TON_SECRET_ICI>"
+    docker_image: "jenkins/inbound-agent"
+
+  tasks:
+    - name: Installer Docker
+      shell: curl -fsSL https://get.docker.com | sh
+      args:
+        creates: /usr/bin/docker
+
+    - name: Télécharger le script d'installation
+      get_url:
+        url: https://raw.githubusercontent.com/<TON_REPO>/main/install-agent.sh
+        dest: /tmp/install-agent.sh
+        mode: '0755'
+
+    - name: Lancer le script
+      shell: |
+        JENKINS_URL={{ jenkins_url }} \
+        SECRET={{ secret }} \
+        DOCKER_IMAGE={{ docker_image }} \
+        bash /tmp/install-agent.sh
